@@ -1,0 +1,38 @@
+trigger: none
+
+resources:
+  repositories:
+  - repository: DigitalTwin-API
+    endpoint: vwac-azurerepo-serviceconnection
+    type: git
+    name: 'Digital%20Twin/_git/DigitalTwin-API'
+    ref: feature/chinaapr
+
+stages:
+- stage: API_China_Apr_Stage
+  displayName: Deployment API China Apr
+  jobs:
+  - job: Deployment_Job_API_China_Apr
+    displayName: Deployment Job API China Apr
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+    - task: UseDotNet@2
+      inputs:
+        version: '6.0.x'
+    - checkout: self
+      path: 'repos/DigitalTwin-API'
+      clean: false
+    - script: dotnet build
+      displayName: 'dotnet build'
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: 'publish'
+        publishWebProjects: true
+        zipAfterPublish: true
+    - task: AzureWebApp@1
+      inputs:
+        azureSubscription: 'vwac-china-appr-resources-serviceconnection'
+        appType: 'webAppLinux'
+        appName: 'api-digitaltwin-china-apr'
+        package: '$(System.DefaultWorkingDirectory)/**/*.zip'
